@@ -2,8 +2,26 @@ import uuid
 import re
 
 class Receipt:
+    """
+    The Receipt class represents a purchase receipt and provides functionality to calculate reward points.
+
+    Attributes:
+        id (str): A unique identifier assigned to the receipt.
+        retailer (str): The name of the retailer.
+        purchaseDate (str): The purchase date in the format YYYY-MM-DD.
+        purchaseTime (str): The purchase time in the format HH:MM or H:MM.
+        items (list): A list of items included in the purchase.
+        total (str): The total purchase amount in the format (D+).DD.
+        points (int): The reward points calculated based on the receipt details.
+    """
     def __init__(self, receiptData):
+        """
+        Creates a Receipt object from a provided JSON object. 
+        Required fields: retailer, purchaseDate, purchaseTime, items and total.
+        """
+
         assert self.validReceipt(receiptData)
+        self.id = str(uuid.uuid4())
         self.retailer = receiptData['retailer']
         self.purchaseDate = receiptData['purchaseDate']
         self.purchaseTime = receiptData['purchaseTime']
@@ -12,10 +30,12 @@ class Receipt:
         for item in receiptData['items']:
             self.items.append(ReceiptItem(item))
         self.total = receiptData['total']
-        self.id = str(uuid.uuid4())
         self.points = self.computePoints()
 
     def validReceipt(self, receiptData):
+        """
+        Ensures that the receipt fields match the specified regex pattern for the corresponding field.
+        """
         validPatterns = {
             'retailer': r'^[\w\s\-&]+$',
             'purchaseDate': r'^\d{4}\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])$',
@@ -30,6 +50,9 @@ class Receipt:
         return isinstance(receiptData['items'], list) and len(receiptData['items']) > 0
     
     def computePoints(self):
+        """
+        Calculates the reward points earned from receipt details.
+        """
         points = 0
 
         # One point for every alphanumeric character in the retailer name.
@@ -68,18 +91,38 @@ class Receipt:
         return points
 
     def getPoints(self):
+        """
+        Returns the calculated reward points for the receipt.
+        """
         return self.points
     
     def getId(self):
+        """
+        Returns the generated id for the receipt.
+        """
         return self.id
     
 class ReceiptItem:
+    """
+    The ReceiptItem class represents a purchased item with relevant details.
+
+    Attributes:
+        shortDescription (str): A brief description of the item.
+        price (str): The item's price in the format (D+).DD.
+    """
     def __init__(self, itemData):
+        """
+        Creates a recepit item object given the JSON object.
+        Required fields: shortDescription, price
+        """
         assert self.validItem(itemData)
         self.shortDescription = itemData['shortDescription']
         self.price = itemData['price']
 
     def validItem(self, itemData):
+        """
+        Ensures that the item fields match the specified regex pattern for the corresponding field.
+        """
         validPatterns = {
             'shortDescription': r'^[\w\s\-]+$',
             'price': r'^\d+\.\d{2}$',
